@@ -26,9 +26,9 @@ It is inspired by the existing functionalities of Ratel.
   - [x] see the result as JSON
   - [ ] see the result as Graph
   - [ ] see the result as Chart
-  - [ ] see the result as markers on a map
+  - [x] see the result as markers on a map
 - [x] execute a DQL mutation
-- [ ] build a DQL query using an graphical editor
+- [x] build a DQL query using an graphical editor
 
 - execute a GraphQL query and 
   - [x] see the result as JSON
