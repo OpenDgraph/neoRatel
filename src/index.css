@@ -407,3 +407,63 @@ input {
 .button:hover {
   background-color: #45a049;
 }
+
+
+/* More DIALOG */
+
+.DialogClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.DialogForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.FormRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.FormLabel {
+  flex: 1;
+}
+
+.PredicateBox {
+  flex: 2;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-left: 10px;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 3%;
+  display: inline-block;
+  background-color: #333;
+  border: 1px solid #fff;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #555;
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+}

@@ -15,7 +15,7 @@
 import React, { useRef, useEffect, useState, useContext } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { editor, KeyCode, KeyMod } from 'monaco-editor';
-import MonacoEditor from 'react-monaco-editor';
+
 import { useTabsStore } from '../../store/tabsStore';
 import { TabList, TabTrigger, TabContent, EditorAreaStyled, TabListContainer } from './styles';
 import { debounce } from 'lodash';
@@ -25,6 +25,7 @@ import FloatingControl from '../FloatingControl/index';
 import WelcomePage from '../Welcome/WelcomePage';
 
 import { SecondEditorTabs } from '../SecondEditor/SecondEditorTabs';
+import CustomMonacoEditor from '../CustomMonacoEditor/index';
 
 import Split from 'react-split';
 
@@ -34,10 +35,8 @@ import DgraphService from '../../services/dgraphService';
 import { useDgraphConfigStore } from '../../store/dgraphConfigStore';
 
 import '../../userWorker';
-
-import { func } from '../../monaco-editor-languages';
-
-const init = func();
+import '../../monaco-editor-languages';
+import SchemaEditor from '../SchemaEditor';
 
 interface Tab {
   tab: {
@@ -52,11 +51,7 @@ interface Tab {
   };
 }
 
-interface CustomMonacoEditorProps {
-  content?: string;
-  language?: string;
-  editorRef?: React.RefObject<editor.IStandaloneCodeEditor>;
-}
+
 export const EditorArea = () => {
 
   // function toggleTheme() {
@@ -81,7 +76,7 @@ export const EditorArea = () => {
 
   const setActiveTab = useTabsStore((state) => state.switchTab);
   const updateTabContent = useTabsStore((state) => state.updateTabContent);
-  const removeTab = useTabsStore((state) => state.removeTab);
+
 
   const aclTokenState = useDgraphConfigStore((state) => state.aclToken);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -100,18 +95,6 @@ export const EditorArea = () => {
     return null;
   };
 
-  const handleRemoveTab = () => {
-    removeTab(activeTab);
-  };
-
-
-  const handleEditorChangeED = debounce((newValue: string) => {
-    if (editorRef.current) {
-      const currentContent = editorRef.current.getValue();
-      handleEditorChange(currentContent);
-    }
-  }, 17000);
-
   const _handleEditorChange = () => {
     if (editorRef.current) {
       const currentContent = editorRef.current.getValue();
@@ -121,116 +104,10 @@ export const EditorArea = () => {
 
   // graphql
 
-  const graphqlEndpoint = activeTab?.graphqlEndpoint || 'https://api.spacex.land/graphql/';
-  const defaultOperations = activeTab?.defaultOperations || '';
-  const defaultVariables = activeTab?.defaultVariables || '';
+  // const graphqlEndpoint = activeTab?.graphqlEndpoint || 'https://api.spacex.land/graphql/';
+  // const defaultOperations = activeTab?.defaultOperations || '';
+  // const defaultVariables = activeTab?.defaultVariables || '';
 
-
-  const CustomMonacoEditor = (e: CustomMonacoEditorProps) => {
-
-    let { content, language, } = e;
-    const { editorRef } = e;
-
-
-    const removeAllTabs = useTabsStore((state) => state.removeAllTabs);
-
-    function deleteAllTabs() {
-      removeAllTabs();
-    }
-
-    useEffect(() => {
-      if (editorRef) {
-        const runDQL = {
-          id: 'my-unique-id',
-          label: 'Run Query',
-          keybindings: [
-            KeyCode.F10
-          ],
-          contextMenuGroupId: 'navigation',
-          contextMenuOrder: 1.5,
-          run: async function (ed: editor.IStandaloneCodeEditor) {
-            const query = ed.getValue();
-            if (language === 'schema') {
-              DgraphService.query('schema {}', activeTab);
-              return;
-            }
-            handleQuery(query);
-          },
-        };
-        const save = {
-          id: 'my-save-command',
-          label: 'Save',
-          keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-          contextMenuGroupId: 'navigation',
-          contextMenuOrder: 1.5,
-          run: function (ed: editor.IStandaloneCodeEditor) {
-            console.log("Save command triggered");
-            console.log(ed.getValue());
-            handleEditorChange(ed.getValue());
-            // Aqui você pode implementar a lógica para salvar o conteúdo do editor
-          }
-        }
-        const del = {
-          id: 'del-my-unique-id',
-          label: 'Delete Tab',
-          keybindings: [
-            KeyMod.Shift | KeyCode.Delete,
-          ],
-          contextMenuGroupId: 'navigation',
-          contextMenuOrder: 2.5,
-          run: function (ed: editor.IStandaloneCodeEditor) {
-            handleRemoveTab();
-            console.log('DELETE!');
-            return null;
-          },
-        };
-        const removeAll = {
-          id: 'rw-my-unique-id',
-          label: 'Remove All Tabs',
-          keybindings: [
-            KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Delete,
-          ],
-          contextMenuGroupId: 'navigation',
-          contextMenuOrder: 3.5,
-          run: function (ed: editor.IStandaloneCodeEditor) {
-            deleteAllTabs();
-            console.log('REMOVE ALL!');
-            return null;
-          },
-        };
-        if (editorRef.current) {
-          editorRef.current.addAction(runDQL);
-          editorRef.current.addAction(save);
-          editorRef.current.addAction(del);
-          editorRef.current.addAction(removeAll);
-        }
-      }
-    }, [editorRef]);
-
-    return (
-      <MonacoEditor
-        width="100%"
-        height="100%"
-        language={language}
-        theme="vs-dark"
-        value={content}
-        onChange={handleEditorChangeED}
-        editorDidMount={(editor) => {
-          if (editorRef) {
-            editorRef.current = null;
-            editorRef.current = editor;
-            editor.focus();
-          }
-        }
-        }
-        editorWillUnmount={() => {
-          if (editorRef) {
-            editorRef.current = null;
-          }
-        }}
-      />
-    );
-  };
 
   const togglePanel = () => {
     if (splitSizes[0] === 0) {
@@ -312,19 +189,25 @@ export const EditorArea = () => {
               onPlus={handlePlus}
               onSettings={handleSettings}
             />
-            <CustomMonacoEditor content={content} language={language} editorRef={editorRef} />;
+            <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+            handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
 
           </div>
           <div className="split-pane">
             <SecondEditorTabs />
           </div>
         </Split>
-
       case 'graphql':
-        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} />;
+        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+        handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
       case 'json':
-        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} />;
+        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+        handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
       case 'schema':
+        return <>
+          <SchemaEditor />
+        </>;
+      case 'schemaBulk':
         return <>
           <FloatingControl
             onPlay={handlePlay}
@@ -333,10 +216,16 @@ export const EditorArea = () => {
             onPlus={handlePlus}
             onSettings={handleSettings}
           />
-          <CustomMonacoEditor content={content} language='dql' editorRef={editorRef} />;
+          <CustomMonacoEditor content={content} language='dql' editorRef={editorRef} activeTab={activeTab} 
+        handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
         </>;
+      case 'gqlSchema':
+        return <> Teste  gqlschema</>
+      case 'gqlSchemaBulk':
+        return <> Teste gqlSchemaBulk </>
       default:
-        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} />;
+        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+        handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
     }
   };
 

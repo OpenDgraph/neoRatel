@@ -16,7 +16,7 @@ type State = {
 };
 
 export const useDgraphConfigStore = create<State> ((set) =>  ({
-  clusterUrl: 'http://dgraph2.localk8s.com/',
+  clusterUrl: 'https://play.dgraph.io',
   serverQueryTimeout: 20,
   slashApiKey: '', 
   authToken: '',

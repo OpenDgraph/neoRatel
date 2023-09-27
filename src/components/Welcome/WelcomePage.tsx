@@ -35,7 +35,12 @@ const WelcomePage = () => {
         <Button onClick={() => handleCreateTab('RDF')}>Create RDF Tab </Button>
       </ButtonsContainer>
       <ButtonsContainer>
-        <Button onClick={() => handleCreateTab('Schema')}><SiDgraph /> Edit Schema </Button>
+        <Button onClick={() => handleCreateTab('Schema DQL')}><SiDgraph /> DQL Schema Editor </Button>
+        <Button onClick={() => handleCreateTab('Schema DQL Bulk')}><SiDgraph /> Bulk Edit DQL Schema </Button>
+      </ButtonsContainer>
+      <ButtonsContainer>
+        <Button onClick={() => handleCreateTab('Schema GQL')}><SiGraphql /> GraphQL Schema Editor </Button>
+        <Button onClick={() => handleCreateTab('Schema GQL Bulk')}><SiGraphql /> Bulk Edit GraphQL Schema </Button>
       </ButtonsContainer>
     </WelcomeContainer>
   );

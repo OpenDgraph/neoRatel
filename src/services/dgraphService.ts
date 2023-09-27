@@ -34,6 +34,9 @@ async function convertSchemaToText(schemaObj: SchemaObj) {
       } else {
         schemaText += predicate.type;
       }
+      if (predicate.lang) {
+        schemaText += ' @lang';
+      }
       if (predicate.index) {
         schemaText += ' @index(' + predicate.tokenizer.join(", ") + ')';
       }

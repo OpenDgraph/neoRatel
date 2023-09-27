@@ -30,123 +30,134 @@ interface Tab {
 }
 
 type TabsStore = {
-    tabs: Tab[];
-    activeTabId: number;
-    addTab: (type: string) => void;
-    removeAllTabs: () => void;
-    removeTab: (id: number) => void;
-    switchTab: (id: number) => void;
-    updateTabContent: (id: number, content: string, result?: any) => void;
-    setDefaultTab: (id: number, tab: string) => void;
+  tabs: Tab[];
+  activeTabId: number;
+  addTab: (type: string) => void;
+  removeAllTabs: () => void;
+  removeTab: (id: number) => void;
+  switchTab: (id: number) => void;
+  updateTabContent: (id: number, content: string, result?: any) => void;
+  setDefaultTab: (id: number, tab: string) => void;
 };
 
 export const useTabsStore = create<TabsStore>((set, get) => ({
-    tabs: [],
-    activeTabId: 1,
-    removeAllTabs: () =>
+  tabs: [],
+  activeTabId: 1,
+  removeAllTabs: () =>
     set((state) => ({
       ...state,
       tabs: [],
     })),
-    setDefaultTab: (id: number, tab: string) => set((state) => {
-      const updatedTabs = state.tabs.map((tabItem) => {
-          if (tabItem.id === id) {
-              return {
-                  ...tabItem,
-                  defaultTab: tab,
-              };
-          }
-          return tabItem;
+  setDefaultTab: (id: number, tab: string) => set((state) => {
+    const updatedTabs = state.tabs.map((tabItem) => {
+      if (tabItem.id === id) {
+        return {
+          ...tabItem,
+          defaultTab: tab,
+        };
+      }
+      return tabItem;
+    });
+    return {
+      ...state,
+      tabs: updatedTabs,
+    };
+  }),
+  addTab: async (type) => {
+    const tabs = get().tabs;
+    const newId = tabs.length > 0 ? Math.max(...tabs.map((tab) => tab.id)) + 1 : 1;
+    const formattedString = `schema {} \n\n{\n\tq(func: Type(User)) {\n \t expand(_all_)\n\t}\n}`;
+
+    let language;
+    let content = '';
+    let Endpoint = 'http://localhost:8080';
+    let defaultOperations = '';
+    let defaultVariables = '';
+
+    if (type === 'GraphQL') {
+      language = 'graphql';
+      Endpoint = 'https://api.spacex.land/graphql/';
+      content = ' query {\n\tlaunchesPast(limit: 5) {\n\t\tmission_name\n\t\tlaunch_date_local\n\t\tlaunch_site {\n\t\t\tsite_name_long\n\t\t}\n\t\tlinks {\n\t\t\tvideo_link\n\t\t}\n\t\trocket {\n\t\t\trocket_name\n\t\t}\n\t}\n}';
+    } else if (type === 'JSON View') {
+      language = 'json';
+      content = '{\n\t"set": [{}]\n}';
+    } else if (type === 'DQL') {
+      language = 'dql';
+      content = `# ${newId} Write your DQL query here \n\n${formattedString}`
+    } else if (type === 'Schema DQL') {
+      type = 'SchemaBulk';
+      language = 'schema';
+      content = '# This should not be monaco\n\n';
+    } else if (type === 'Schema DQL Bulk') {
+      type = 'SchemaBulk';
+      language = 'schemaBulk';
+      let query = `schema {}`
+      const response = await DgraphService.query(query, newId);
+      content = '# Write your schema here\n\n' + response;
+    } else if (type === 'Schema GQL') {
+      language = 'gqlSchema';
+      content = '# This should not be monaco\n\n';
+    } else if (type === 'Schema GQL Bulk') {
+      language = 'gqlSchemaBulk';
+      content = '# Write your GraphQL schema here\n\n';
+    } else {
+      language = 'plaintext';
+    }
+
+    set({
+      tabs: [
+        ...tabs,
+        {
+          id: newId,
+          title: `${type} ${newId}`,
+          type,
+          content,
+          language,
+          Endpoint,
+          defaultOperations,
+          defaultVariables,
+          defaultTab: "json",
+          result: {}
+        },
+      ],
+      activeTabId: newId,
+    });
+
+  },
+  removeTab: (id: number) => set((state) => {
+    const tabIndex = state.tabs.findIndex((tab) => tab.id === id);
+    if (tabIndex === -1) return state;  // return current state if tab is not found
+    const newTabs = state.tabs.filter((tab) => tab.id !== id);
+    const newActiveTab = state.activeTabId === id
+      ? newTabs[tabIndex] ? newTabs[tabIndex].id : newTabs[tabIndex - 1]?.id
+      : state.activeTabId;
+    return { tabs: newTabs, activeTabId: newActiveTab };
+  }),
+
+
+  switchTab: (id: number) => {
+    set({ activeTabId: id });
+  },
+  updateTabContent: (id: number, content: string, result: any = undefined) => {
+    console.log('updateTabContent', id, content);
+    set((state) => {
+      const updatedTabs = state.tabs.map((tab) => {
+        if (tab.id === id) {
+          return {
+            ...tab,
+            content: content,
+            result: result !== undefined ? result : tab.result
+          };
+        }
+        return tab;
       });
       return {
-          ...state,
-          tabs: updatedTabs,
+        ...state,
+        tabs: updatedTabs
       };
-  }),
-    addTab: async (type) => {
-        const tabs = get().tabs;
-        const newId = tabs.length > 0 ? Math.max(...tabs.map((tab) => tab.id)) + 1 : 1;
-        const formattedString = `schema {} \n\n{\n\tq(func: Type(User)) {\n \t expand(_all_)\n\t}\n}`;
-        
-        let language;
-        let content = '';
-        let Endpoint = 'http://localhost:8080';
-        let defaultOperations = '';
-        let defaultVariables = '';
+    });
+  },
 
-        if (type === 'GraphQL' || type === 'graphql') {
-          language = 'graphql';
-          Endpoint = 'https://api.spacex.land/graphql/';
-          content = ' query {\n\tlaunchesPast(limit: 5) {\n\t\tmission_name\n\t\tlaunch_date_local\n\t\tlaunch_site {\n\t\t\tsite_name_long\n\t\t}\n\t\tlinks {\n\t\t\tvideo_link\n\t\t}\n\t\trocket {\n\t\t\trocket_name\n\t\t}\n\t}\n}';
-        } else if (type === 'JSON View') {
-          language = 'json';
-          content = '{\n\t"set": [{}]\n}';
-        } else if (type === 'DQL') {
-          language = 'dql';
-          content = `# ${newId} Write your DQL query here \n\n${formattedString}`
-        } else if (type === 'Schema') {
-          language = 'schema';
-          let query = `schema {}`
-          const response = await DgraphService.query(query, newId);
-          content = '# Write your schema here\n\n'+ response;
-        } else {
-          language = 'plaintext';
-        }
-
-        set({
-          tabs: [
-            ...tabs,
-            {
-              id: newId,
-              title: `${type} ${newId}`,
-              type,
-              content,
-              language,
-              Endpoint,
-              defaultOperations,
-              defaultVariables,
-              defaultTab: "json",
-              result: {}
-            },
-          ],
-          activeTabId: newId,
-        });
-        
-    },
-    removeTab: (id: number) => set((state) => {
-      const tabIndex = state.tabs.findIndex((tab) => tab.id === id);
-      if (tabIndex === -1) return state;  // return current state if tab is not found
-      const newTabs = state.tabs.filter((tab) => tab.id !== id);
-      const newActiveTab = state.activeTabId === id
-          ? newTabs[tabIndex] ? newTabs[tabIndex].id : newTabs[tabIndex - 1]?.id
-          : state.activeTabId;
-      return { tabs: newTabs, activeTabId: newActiveTab };
-  }),
-  
-
-    switchTab: (id: number) => {
-        set({ activeTabId: id });
-    },
-    updateTabContent: (id: number, content: string, result: any = undefined) => {
-      console.log('updateTabContent', id, content);
-      set((state) => {
-          const updatedTabs = state.tabs.map((tab) => {
-              if (tab.id === id) {
-                  return {
-                      ...tab,
-                      content: content,
-                      result: result !== undefined ? result : tab.result
-                  };
-              }
-              return tab;
-          });
-          return {
-              ...state,
-              tabs: updatedTabs
-          };
-      });
-  },   
-    
 }));
 
 
