@@ -9,6 +9,10 @@ It is inspired by the existing functionalities of Ratel.
 - `npm install` to install dependencies
 - `npm run dev` to start a local server 
 
+# Debugging
+
+- `npm run debug` to start a local server in debug mode
+- Go to Debug tab in VsCode and run the debug tool
 
 # Use cases
 

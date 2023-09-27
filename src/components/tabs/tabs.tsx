@@ -31,6 +31,7 @@ import Split from 'react-split';
 import AddTabDialog from '../TabDialog/TabDialog';
 
 import DgraphService from '../../services/dgraphService';
+import { useDgraphConfigStore } from '../../store/dgraphConfigStore';
 
 import '../../userWorker';
 
@@ -38,12 +39,24 @@ import { func } from '../../monaco-editor-languages';
 
 const init = func();
 
+interface Tab {
+  tab: {
+    id: number;
+    title: string;
+    content: string;
+    type: string;
+    language: string;
+    Endpoint?: string;
+    defaultOperations?: string;
+    defaultVariables?: string;
+  };
+}
+
 interface CustomMonacoEditorProps {
   content?: string;
   language?: string;
-  editorRef?: any;
+  editorRef?: React.RefObject<editor.IStandaloneCodeEditor>;
 }
-
 export const EditorArea = () => {
 
   // function toggleTheme() {
@@ -58,7 +71,9 @@ export const EditorArea = () => {
   // }
 
   const htmlElement = document.querySelector('html');
-  htmlElement.setAttribute('data-theme', 'dark');
+  if (htmlElement) {
+    htmlElement.setAttribute('data-theme', 'dark');
+  }
 
   const tabs = useTabsStore((state) => state.tabs);
   const activeTab = useTabsStore((state) => state.activeTabId);
@@ -68,7 +83,8 @@ export const EditorArea = () => {
   const updateTabContent = useTabsStore((state) => state.updateTabContent);
   const removeTab = useTabsStore((state) => state.removeTab);
 
-  const editorRef = useRef(null);
+  const aclTokenState = useDgraphConfigStore((state) => state.aclToken);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [splitSizes, setSplitSizes] = useState<[number, number]>([50, 50]);
 
   const handleEditorChange = (newValue: string) => {
@@ -90,7 +106,7 @@ export const EditorArea = () => {
 
 
   const handleEditorChangeED = debounce((newValue: string) => {
-    if (activeTab) {
+    if (editorRef.current) {
       const currentContent = editorRef.current.getValue();
       handleEditorChange(currentContent);
     }
@@ -123,7 +139,7 @@ export const EditorArea = () => {
     }
 
     useEffect(() => {
-      if (editorRef.current) {
+      if (editorRef) {
         const runDQL = {
           id: 'my-unique-id',
           label: 'Run Query',
@@ -132,7 +148,7 @@ export const EditorArea = () => {
           ],
           contextMenuGroupId: 'navigation',
           contextMenuOrder: 1.5,
-          run: async function (ed) {
+          run: async function (ed: editor.IStandaloneCodeEditor) {
             const query = ed.getValue();
             if (language === 'schema') {
               DgraphService.query('schema {}', activeTab);
@@ -147,7 +163,7 @@ export const EditorArea = () => {
           keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
           contextMenuGroupId: 'navigation',
           contextMenuOrder: 1.5,
-          run: function (ed) {
+          run: function (ed: editor.IStandaloneCodeEditor) {
             console.log("Save command triggered");
             console.log(ed.getValue());
             handleEditorChange(ed.getValue());
@@ -162,7 +178,7 @@ export const EditorArea = () => {
           ],
           contextMenuGroupId: 'navigation',
           contextMenuOrder: 2.5,
-          run: function (ed) {
+          run: function (ed: editor.IStandaloneCodeEditor) {
             handleRemoveTab();
             console.log('DELETE!');
             return null;
@@ -176,18 +192,18 @@ export const EditorArea = () => {
           ],
           contextMenuGroupId: 'navigation',
           contextMenuOrder: 3.5,
-          run: function (ed) {
+          run: function (ed: editor.IStandaloneCodeEditor) {
             deleteAllTabs();
             console.log('REMOVE ALL!');
             return null;
           },
         };
-
-        editorRef.current.addAction(runDQL);
-        editorRef.current.addAction(save);
-        editorRef.current.addAction(del);
-        editorRef.current.addAction(removeAll);
-
+        if (editorRef.current) {
+          editorRef.current.addAction(runDQL);
+          editorRef.current.addAction(save);
+          editorRef.current.addAction(del);
+          editorRef.current.addAction(removeAll);
+        }
       }
     }, [editorRef]);
 
@@ -200,12 +216,17 @@ export const EditorArea = () => {
         value={content}
         onChange={handleEditorChangeED}
         editorDidMount={(editor) => {
-          editorRef.current = null;
-          editorRef.current = editor;
-          editor.focus();
-        }}
+          if (editorRef) {
+            editorRef.current = null;
+            editorRef.current = editor;
+            editor.focus();
+          }
+        }
+        }
         editorWillUnmount={() => {
-          editorRef.current = null;
+          if (editorRef) {
+            editorRef.current = null;
+          }
         }}
       />
     );
@@ -220,17 +241,28 @@ export const EditorArea = () => {
   };
 
 
-  const RenderMonaco = (value: any) => {
-    let { id, title, content, type, language, Endpoint, defaultOperations, defaultVariables } = value.value;
+  const RenderMonaco = (tab: Tab) => {
+    const {
+      id,
+      title,
+      content,
+      type,
+      language,
+      Endpoint,
+      defaultOperations,
+      defaultVariables,
+    } = tab.tab;
 
     const handlePlay = () => {
       if (language === 'schema') {
         DgraphService.query('schema {}', activeTab);
         return;
       }
-      const currentContent = editorRef.current.getValue();
-      handleEditorChange(currentContent);
-      handleQuery(currentContent);
+      if (editorRef.current) {
+        const currentContent = editorRef.current.getValue();
+        handleEditorChange(currentContent);
+        handleQuery(currentContent);
+      }
     };
 
     const handleClear = () => {
@@ -266,7 +298,7 @@ export const EditorArea = () => {
             _handleEditorChange();
           }}
           onDragEnd={(newSizes) => {
-            setSplitSizes(newSizes);
+            setSplitSizes(newSizes as [number, number]);
             _handleEditorChange();
           }}
 
@@ -322,15 +354,15 @@ export const EditorArea = () => {
 
   return (
     <EditorAreaStyled>
-      <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
+      <Tabs.Root value={activeTab.toString()} onValueChange={value => setActiveTab(Number(value))}>
         <>
           {tabs.length < 1 ? (
             <WelcomePage />
           ) : (
             tabs.map((tab) => (
-              <TabContent key={tab.id} value={tab.id}>
+              <TabContent key={tab.id} value={tab.id.toString()}>
                 <React.StrictMode>
-                  <RenderMonaco value={tab} />
+                  <RenderMonaco tab={tab} />
                 </React.StrictMode>
               </TabContent>
             ))
@@ -338,7 +370,7 @@ export const EditorArea = () => {
           <TabListContainer>
             <TabList>
               {tabs.map((tab) => (
-                <TabTrigger key={tab.id} value={tab.id}>
+                <TabTrigger key={tab.id} value={tab.id.toString()}>
                   {tab.title}
                 </TabTrigger>
               ))}

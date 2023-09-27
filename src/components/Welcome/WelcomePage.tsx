@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import React from 'react';
 import { useTabsStore } from '../../store/tabsStore';
 import styled from '@emotion/styled';
 import { SiDgraph, SiGraphql } from "react-icons/si";
 import { VscJson } from "react-icons/vsc";
-import DgraphConfigDialog from '../ConfigDialog/ConfDialog';
-
 
 const WelcomePage = () => {
   const addTab = useTabsStore((state) => state.addTab);
@@ -40,7 +37,6 @@ const WelcomePage = () => {
       <ButtonsContainer>
         <Button onClick={() => handleCreateTab('Schema')}><SiDgraph /> Edit Schema </Button>
       </ButtonsContainer>
-      <DgraphConfigDialog />
     </WelcomeContainer>
   );
 };

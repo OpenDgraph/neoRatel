@@ -45,7 +45,12 @@ async function convertSchemaToText(schemaObj: SchemaObj) {
     schemaText += '\n';
   }
 
-  schemaText += '# Types\n';
+  if (schemaText !== '') {
+    schemaText += '# Types\n';
+  } else if (schemaText === '') {
+    schemaText += '# No predicates found || Looks like a clean cluster \n';
+  }
+  
   for (const type of types) {
     if (!type.name.startsWith('dgraph.')) {
       schemaText += `type <${type.name}> {\n`;
@@ -61,11 +66,24 @@ async function convertSchemaToText(schemaObj: SchemaObj) {
   return schemaText;
 }
 
+interface IDgraphService {
+  aclToken: string | null;
+  currentUrl: string | null;
+  sanitizeUrl(url: string): string;
+  ensureNoSlash(path: string): string;
+  executeRequest(endpoint: string, data: any, options: any, tabId: number): Promise<any>;
+  query(q: any, tabId: number): Promise<any>;
+  mutate(m: any, tabId: number): Promise<any>;
+  alter(schema: string): Promise<any>;
+}
 
-class DgraphService {
-  currentUrl: null;
+class DgraphService implements IDgraphService {
+  aclToken: string | null;
+  currentUrl: string | null;
+
   constructor() {
     this.currentUrl = null;
+    this.aclToken = null;
   }
 
   sanitizeUrl(url: string) {
@@ -87,43 +105,80 @@ class DgraphService {
     return path;
   }
 
-  async query(q: any, tabId: number) {
-    const { serverUrl, slashApiKey, authToken } =
-      useDgraphConfigStore.getState();
-    if (serverUrl !== this.currentUrl) {
-      this.currentUrl = this.sanitizeUrl(serverUrl);
+  async executeRequest(endpoint: string, data: any, options: any, tabId: number) {
+    const { clusterUrl, slashApiKey, authToken, aclToken } = useDgraphConfigStore.getState();
+    if (clusterUrl !== this.currentUrl) {
+      this.currentUrl = this.sanitizeUrl(clusterUrl);
+    }
+    if (aclToken !== this.aclToken) {
+      this.aclToken = aclToken;
     }
     try {
-      const response = await axios.post(this.currentUrl + "/query", q, {
+      const config = {
         headers: {
           "X-Auth-Token": slashApiKey,
           "X-Dgraph-AuthToken": authToken,
           "Content-Type": "application/dql",
+          "X-Dgraph-AccessToken": this.aclToken,
         },
-      });
-      // Set the result in the Zustand store
-      if (q.startsWith('schema {') && q.endsWith('}')) {
-        response.data = await convertSchemaToText(response.data);
-        useTabsStore.getState().updateTabContent(tabId, response.data, response.data);
-      } else {
-        useTabsStore.getState().updateTabContent(tabId, q, response.data);
+        params: options,
+      };
+
+      const response = await axios.post(this.currentUrl + "/" + endpoint, data, config);
+
+      if (endpoint === "query") {
+        if (data.startsWith('schema {') && data.endsWith('}')) {
+          if (!response.data.data) {
+            console.log(" return");
+            return;
+          }
+          console.log(" convertSchemaToText");
+          response.data = await convertSchemaToText(response.data);
+          useTabsStore.getState().updateTabContent(tabId, response.data, response.data);
+        } else {
+          useTabsStore.getState().updateTabContent(tabId, data, response.data);
+        }
       }
+
       return response.data;
     } catch (error) {
-      console.error("Error fetching data from Dgraph:", error);
+      console.error(`Error executing ${endpoint} on Dgraph:`, error);
     }
   }
 
-  async mutate(mutation: any) {
-    const { serverUrl, slashApiKey, authToken } =
+  async query(q: any, tabId: number) {
+    const options = {
+      debug: q.debug,
+      timeout: q.timeout,
+      startTs: q.startTs,
+      hash: q.hash,
+      be: q.be,
+      ro: q.ro,
+    };
+
+    return this.executeRequest("query", q, options, tabId);
+  }
+
+  async mutate(m: any, tabId: number) {
+    const options = {
+      commitNow: m.commitNow,
+      startTs: m.startTs,
+    };
+
+    return this.executeRequest("mutate", { setNquads: m.mutation }, options, tabId);
+  }
+
+
+  async alter(schema: string) {
+    const { clusterUrl, slashApiKey, authToken } =
       useDgraphConfigStore.getState();
-    if (serverUrl !== this.currentUrl) {
-      this.currentUrl = this.sanitizeUrl(serverUrl);
+    if (clusterUrl !== this.currentUrl) {
+      this.currentUrl = this.sanitizeUrl(clusterUrl);
     }
     try {
       const response = await axios.post(
-        this.currentUrl + "/mutate",
-        { setNquads: mutation },
+        this.currentUrl + "/alter",
+        { schema },
         {
           headers: {
             "X-Auth-Token": slashApiKey,
@@ -134,9 +189,10 @@ class DgraphService {
       );
       return response.data;
     } catch (error) {
-      console.error("Error mutating data on Dgraph:", error);
+      console.error("Error altering schema on Dgraph:", error);
     }
   }
+
 }
 
 export default new DgraphService();

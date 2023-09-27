@@ -12,17 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import React from 'react';
 import { StatusBarContainer } from './styles'; // Adicione o arquivo de estilo
 import { CheckCircledIcon } from '@radix-ui/react-icons'; // Importe o ícone
-
+import { useDgraphConfigStore } from '../../store/dgraphConfigStore';
 
 export const StatusBar = () => {
-    return (
-      <StatusBarContainer >
-        <CheckCircledIcon  style={{ color: 'green' }}/>
-        <span>Connected to http://localhost:8080 | Namespace: 0x1 | User: groot </span>
-      </StatusBarContainer>
-    );
+  const {
+    clusterUrl,
+    serverQueryTimeout,
+    slashApiKey,
+    authToken,
+    aclToken,
+    dialogState,
+    setDialogState,
+  } = useDgraphConfigStore();
+
+  const handleSubmit = (event: { preventDefault: () => void; }) => {
+    console.log('handleSubmit');
+    event.preventDefault();
+    setDialogState(!dialogState);
   };
-  
+
+  return (
+    <StatusBarContainer>
+      <CheckCircledIcon style={{ color: 'green' }} />
+      <span>Connected to
+        <span style={{ color: 'yellow', cursor: 'pointer' }} onClick={handleSubmit}>
+          {clusterUrl}
+        </span>
+        | Namespace: 0x1 | User: groot | Query Timeout: {serverQueryTimeout}
+      </span>
+    </StatusBarContainer>
+  );
+};

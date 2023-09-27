@@ -262,6 +262,7 @@ input {
   line-height: 1;
   font-weight: 500;
   height: 35px;
+  cursor: pointer;
 }
 .Button.violet {
   background-color: white;
@@ -297,6 +298,7 @@ input {
   position: absolute;
   top: 10px;
   right: 10px;
+  cursor: pointer;
 }
 .IconButton:hover {
   background-color: var(--violet4);
