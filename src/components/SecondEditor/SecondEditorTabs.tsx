@@ -15,9 +15,10 @@
 import React, { useEffect, useRef } from 'react';
 import { SecondTabList, SecondTabTrigger, SecondTabContent } from './styles';
 import * as Tabs from '@radix-ui/react-tabs';
-import { FiActivity, FiCode, FiMapPin } from 'react-icons/fi';
+import { FiActivity, FiCode, FiMapPin , FiBarChart} from 'react-icons/fi';
 import { editor } from 'monaco-editor';
 import { useTabsStore } from '../../store/tabsStore';
+import { ChartBar} from './Chart';
 
 interface JsonEditorProps {
   value: any;
@@ -68,12 +69,18 @@ export const SecondEditorTabs = () => {
         <SecondTabTrigger value="geo">
           <FiMapPin /> Geo
         </SecondTabTrigger>
+        <SecondTabTrigger value="chart">
+          <FiBarChart /> Chart
+        </SecondTabTrigger>
       </SecondTabList>
       <SecondTabContent value="graphView">Graph View Content</SecondTabContent>
       <SecondTabContent value="json">
       <JsonEditor value={result} />
       </SecondTabContent>
       <SecondTabContent value="geo">Geo Content</SecondTabContent>
+      <SecondTabContent value="chart">
+        <ChartBar data={result["data"]} />
+        Chart Content</SecondTabContent>
     </Tabs.Root>
   );
 };
