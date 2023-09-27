@@ -1,5 +1,10 @@
 import styled from '@emotion/styled';
 
+interface TabLinkProps {
+  active: boolean;
+  children: React.ReactNode;
+}
+
 export const StyledControl = styled.div`
   display: flex;
   align-items: center;
@@ -15,7 +20,7 @@ export const StyledControl = styled.div`
 `;
 
 
-export const TabLink = styled.div`
+export const TabLink = styled.div<TabLinkProps>`
   display: flex;
   align-items: center;
   justify-content: center;

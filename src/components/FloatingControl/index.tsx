@@ -1,8 +1,17 @@
 import { PlayIcon, Cross1Icon, CopyIcon, PlusIcon, GearIcon } from '@radix-ui/react-icons';
 import { TabLink, StyledControl, ControlButton } from "./StyledComponents";
 
-const FloatingControl = ({ activeTab, onPlay, onClear, onClone, onAdd, onSettings }) => {
+interface FloatingControlProps {
+    activeTab?: string;
+    onPlay: () => void;
+    onClear: () => void;
+    onClone: () => void;
+    onAdd?: () => void;
+    onPlus: () => void;
+    onSettings: () => void;
+}
 
+const FloatingControl = ({ activeTab, onPlay, onClear, onClone, onAdd, onSettings }: FloatingControlProps) => {
     return (
         <StyledControl>
             <TabLink active={activeTab === 'play'}>

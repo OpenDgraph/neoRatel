@@ -9,6 +9,10 @@ It is inspired by the existing functionalities of Ratel.
 - `npm install` to install dependencies
 - `npm run dev` to start a local server 
 
+# Debugging
+
+- `npm run debug` to start a local server in debug mode
+- Go to Debug tab in VsCode and run the debug tool
 
 # Use cases
 
@@ -39,7 +43,6 @@ It is inspired by the existing functionalities of Ratel.
   - [ ] update DQL predicate definition (type and indexes)
   - [ ] Drop the DQL schema and all data
   - [ ] remove a predicate and drop associated data
-  
 
 - Manage Dgraph data: 
   - [ ] see the number of nodes having a specific predicate

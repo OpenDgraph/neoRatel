@@ -6,7 +6,8 @@
             "request": "launch",
             "name": "Launch localhost",
             "url": "http://localhost:4004",
-            "webRoot": "${workspaceFolder}/"
+            "webRoot": "${workspaceFolder}/",
+            "runtimeArgs": ["--disable-web-security", "--user-data-dir=${workspaceFolder}/.vscode/chrome"]
         }
     ]
   }

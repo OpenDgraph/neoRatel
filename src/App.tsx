@@ -19,6 +19,8 @@ import { EditorArea } from './components/tabs/tabs';
 import { StatusBar } from './components/StatusBar/StatusBar';
 import Sidebar from './components/Sidebar/Sidebar';
 
+import DgraphConfigDialog from './components/ConfigDialog/ConfDialog';
+
 const App: React.FC = () => {
   return (
     <>
@@ -27,6 +29,7 @@ const App: React.FC = () => {
         <EditorArea />
         <StatusBar />
       </MainContent>
+      <DgraphConfigDialog />
     </>
   );
 }

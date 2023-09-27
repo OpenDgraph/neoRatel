@@ -1,22 +1,30 @@
 import create from 'zustand';
 
 type State = {
-  serverUrl: string,
+  clusterUrl: string,
   serverQueryTimeout: number,
   slashApiKey: string,
   authToken: string,
-  setServerUrl: (url: string) => void,
+  aclToken: string,
+  dialogState: boolean,
+  setDialogState: (state: boolean) => void,
+  setAclToken: (tokenACL: string) => void,
+  setclusterUrl: (url: string) => void,
   setServerQueryTimeout: (timeout: number) => void,
   setSlashApiKey: (key: string) => void,
   setAuthToken: (token: string) => void,
 };
 
-export const useDgraphConfigStore = create<State>((set) => ({
-  serverUrl: 'http://localhost:8080',
-  serverQueryTimeout: 0,
+export const useDgraphConfigStore = create<State> ((set) =>  ({
+  clusterUrl: 'http://dgraph2.localk8s.com/',
+  serverQueryTimeout: 20,
   slashApiKey: '', 
   authToken: '',
-  setServerUrl: (url) => set({ serverUrl: url }),
+  aclToken: '',
+  dialogState: true,
+  setDialogState: (state) => set({ dialogState: state }),
+  setAclToken: (tokenACL) => set({ aclToken: tokenACL }),
+  setclusterUrl: (url) => set({ clusterUrl: url }),
   setServerQueryTimeout: (timeout) => set({ serverQueryTimeout: timeout }),
   setSlashApiKey: (key) => set({ slashApiKey: key }),
   setAuthToken: (token) => set({ authToken: token }),
