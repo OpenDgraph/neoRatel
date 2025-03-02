@@ -24,18 +24,35 @@ const Sidebar: React.FC = () => {
     const {
         dialogState,
         setDialogState,
+        isConfigured,
     } = useDgraphConfigStore();
 
     const handleSubmit = (event: { preventDefault: () => void; }) => {
-        console.log('handleSubmit');
         event.preventDefault();
-        setDialogState(!dialogState);
+        setDialogState(true);
     };
     return (
         <SidebarContainer>
             <IconContainer>
                 <IconSpacing onClick={handleSubmit} style={{ cursor: 'pointer' }}>
-                    <SiDgraph size={80} style={{ filter: 'drop-shadow(4px 4px 4px rgba(0, 0, 0, 1.25))' }} />
+                    <SiDgraph 
+                        size={80} 
+                        style={{ 
+                            filter: 'drop-shadow(4px 4px 4px rgba(0, 0, 0, 1.25))',
+                            color: isConfigured ? '#4CAF50' : '#d4d4d4'
+                        }} 
+                    />
+                    {isConfigured && (
+                        <span style={{ 
+                            position: 'absolute', 
+                            bottom: -10, 
+                            right: -10,
+                            color: '#4CAF50',
+                            fontSize: '20px'
+                        }}>
+                            ✓
+                        </span>
+                    )}
                 </IconSpacing>
                 <IconSpacing>
                     <FiFolder size={35} />
