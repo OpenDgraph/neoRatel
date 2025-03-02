@@ -71,28 +71,57 @@ export const EditorArea = () => {
   }
 
   const tabs = useTabsStore((state) => state.tabs);
-  const activeTab = useTabsStore((state) => state.activeTabId);
-  const editorLanguage = activeTab?.type === 'GraphQL' ? 'graphql' : activeTab?.type === 'JSON' ? 'json' : 'plaintext';
+  const activeTabId = useTabsStore((state) => state.activeTabId);
+  const activeTabItem = tabs.find(tab => tab.id === activeTabId);
+  const editorLanguage = activeTabItem?.type === 'GraphQL' ? 'graphql' : 
+                        activeTabItem?.type === 'JSON' ? 'json' : 
+                        activeTabItem?.type === 'Schema' ? 'schema' : 'plaintext';
 
   const setActiveTab = useTabsStore((state) => state.switchTab);
   const updateTabContent = useTabsStore((state) => state.updateTabContent);
 
+  const { addTab } = useTabsStore((state) => ({ addTab: state.addTab }));
 
   const aclTokenState = useDgraphConfigStore((state) => state.aclToken);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [splitSizes, setSplitSizes] = useState<[number, number]>([50, 50]);
 
   const handleEditorChange = (newValue: string) => {
-    updateTabContent(activeTab, newValue);
+    if (activeTabId !== undefined) {
+      updateTabContent(activeTabId, newValue);
+    }
   };
 
   const handleQuery = async (query: string) => {
     try {
-      await DgraphService.query(query, activeTab);
-    } catch (err) {
-      console.error('Error running query:', err);
+      if (activeTabId !== undefined) {
+        await DgraphService.query(query, activeTabId);
+      }
+    } catch (error) {
+      console.error("Error running query:", error);
     }
-    return null;
+  };
+
+  const handleClear = () => {
+    if (editorRef.current) {
+      editorRef.current.setValue('');
+    }
+  };
+
+  const handleClone = () => {
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (tab) {
+      addTab(tab.type);
+    }
+  };
+
+  const handlePlus = () => {
+    addTab('DQL');
+  };
+
+  const handleSettings = () => {
+    // Implementar abertura de configurações
+    console.log('Open settings');
   };
 
   const _handleEditorChange = () => {
@@ -117,6 +146,16 @@ export const EditorArea = () => {
     }
   };
 
+  const handlePlay = () => {
+    if (editorRef.current) {
+      const currentContent = editorRef.current.getValue();
+      if (activeTabItem?.type === 'Schema') {
+        DgraphService.query('schema {}', activeTabId);
+      } else {
+        handleQuery(currentContent);
+      }
+    }
+  };
 
   const RenderMonaco = (tab: Tab) => {
     const {
@@ -129,39 +168,6 @@ export const EditorArea = () => {
       defaultOperations,
       defaultVariables,
     } = tab.tab;
-
-    const handlePlay = () => {
-      if (language === 'schema') {
-        DgraphService.query('schema {}', activeTab);
-        return;
-      }
-      if (editorRef.current) {
-        const currentContent = editorRef.current.getValue();
-        handleEditorChange(currentContent);
-        handleQuery(currentContent);
-      }
-    };
-
-    const handleClear = () => {
-      // clear the editor content
-      console.log('clear');
-      handleEditorChange('');
-    };
-
-    const handleClone = () => {
-      // clone the current tab
-      console.log('clone');
-    };
-
-    const handlePlus = () => {
-      // add a new tab
-      console.log('plus');
-    };
-
-    const handleSettings = () => {
-      // open settings
-      console.log('settings');
-    };
 
     switch (language) {
       case 'dql':
@@ -189,7 +195,7 @@ export const EditorArea = () => {
               onPlus={handlePlus}
               onSettings={handleSettings}
             />
-            <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+            <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTabId} 
             handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
 
           </div>
@@ -198,10 +204,10 @@ export const EditorArea = () => {
           </div>
         </Split>
       case 'graphql':
-        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTabId} 
         handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
       case 'json':
-        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTabId} 
         handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
       case 'schema':
         return <>
@@ -210,13 +216,13 @@ export const EditorArea = () => {
       case 'schemaBulk':
         return (
           <>
-          <FloatingControl
-            onPlay={handlePlay}
-            onClear={handleClear}
-            onClone={handleClone}
-            onPlus={handlePlus}
-            onSettings={handleSettings}
-          />
+            <FloatingControl
+              onPlay={handlePlay}
+              onClear={handleClear}
+              onClone={handleClone}
+              onPlus={handlePlus}
+              onSettings={handleSettings}
+            />
             <CustomMonacoEditor 
               content={content} 
               language='dql' 
