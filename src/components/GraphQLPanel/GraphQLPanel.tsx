@@ -83,14 +83,12 @@ const execOperation = async function () {
   const variables = editor.getModel(Uri.file('variables.json'))!.getValue();
   const operations = editor.getModel(Uri.file('operation.graphql'))!.getValue();
   const resultsModel = editor.getModel(Uri.file('results.json'));
-  // @ts-expect-error
   const result = await fetcher({
     query: operations,
     variables: JSON.stringify(JSONC.parse(variables)),
-  });
-  // TODO: this demo only supports a single iteration for http GET/POST,
-  // no multipart or subscriptions yet.
-  // @ts-expect-error
+  }) as AsyncIterableIterator<any>;
+    // TODO: this demo only supports a single iteration for http GET/POST,
+    // no multipart or subscriptions yet.
   const data = await result.next();
 
   resultsModel?.setValue(JSON.stringify(data.value, null, 2));
