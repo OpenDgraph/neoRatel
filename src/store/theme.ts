@@ -21,14 +21,14 @@ interface State {
   setTheme: (theme: string) => void;
 }
 
-export const useStore = create<State>(
-  devtools(
-    persist(
+export const useStore = create<State>()(
+  persist(
+    devtools(
       (set) => ({
         theme: 'light',
-        setTheme: (theme) => set((state) => ({ theme })),
-      }),
-      { name: 'my-dashboard-storage' }
-    )
+        setTheme: (theme) => set({ theme }),
+      })
+    ),
+    { name: 'my-dashboard-storage' }
   )
 );
