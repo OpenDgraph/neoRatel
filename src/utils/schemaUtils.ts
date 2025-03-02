@@ -63,4 +63,4 @@ export async function convertSchemaToText(schemaObj: SchemaObj) {
   }
 
   return schemaText;
-} 
+}
