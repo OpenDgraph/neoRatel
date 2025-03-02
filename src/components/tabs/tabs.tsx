@@ -208,7 +208,8 @@ export const EditorArea = () => {
           <SchemaEditor />
         </>;
       case 'schemaBulk':
-        return <>
+        return (
+          <>
           <FloatingControl
             onPlay={handlePlay}
             onClear={handleClear}
@@ -216,15 +217,22 @@ export const EditorArea = () => {
             onPlus={handlePlus}
             onSettings={handleSettings}
           />
-          <CustomMonacoEditor content={content} language='dql' editorRef={editorRef} activeTab={activeTab} 
-        handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
-        </>;
+            <CustomMonacoEditor 
+              content={content} 
+              language='dql' 
+              editorRef={editorRef} 
+              activeTab={activeTabId} 
+              handleEditorChange={handleEditorChange} 
+              handleQuery={handleQuery} 
+            />
+          </>
+        );
       case 'gqlSchema':
         return <> Teste  gqlschema</>
       case 'gqlSchemaBulk':
         return <> Teste gqlSchemaBulk </>
       default:
-        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTab} 
+        return <CustomMonacoEditor content={content} language={language} editorRef={editorRef} activeTab={activeTabId} 
         handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
     }
   };
@@ -243,7 +251,7 @@ export const EditorArea = () => {
 
   return (
     <EditorAreaStyled>
-      <Tabs.Root value={activeTab.toString()} onValueChange={value => setActiveTab(Number(value))}>
+      <Tabs.Root value={activeTabId.toString()} onValueChange={value => setActiveTab(Number(value))}>
         <>
           {tabs.length < 1 ? (
             <WelcomePage />
