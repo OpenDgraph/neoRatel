@@ -16,14 +16,14 @@ import { KeyCode, KeyMod } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
 
 // Custom language configuration for GraphQL
-export const dql = {
+export const dql: monaco.languages.LanguageConfiguration = {
   comments: {
     lineComment: "#"
   },
   brackets: [
-    ["{", "}"],
-    ["[", "]"],
-    ["(", ")"]
+    ["[", "]"] as monaco.languages.CharacterPair,
+    ["{", "}"] as monaco.languages.CharacterPair,
+    ["(", ")"] as monaco.languages.CharacterPair
   ],
   autoClosingPairs: [
     { open: "{", close: "}" },
@@ -44,7 +44,7 @@ export const dql = {
   }
 };
 
-export const TokensDefaults = {
+export const TokensDefaults: monaco.languages.IMonarchLanguage = {
   defaultToken: "invalid",
   tokenPostfix: ".dql",
   keywords: [
@@ -124,8 +124,8 @@ export const TokensDefaults = {
   }
 };
 
-export const DQLTheme = {
-  base: 'vs-dark',
+export const DQLTheme: monaco.editor.IStandaloneThemeData = {
+  base: 'vs-dark' as monaco.editor.BuiltinTheme,
   inherit: false,
   rules: [
     { token: 'schema', foreground: '008800' },
@@ -153,7 +153,15 @@ monaco.languages.setMonarchTokensProvider('dql',
 monaco.editor.defineTheme('DQLTheme', DQLTheme);
 // Register a completion item provider for the new language
 monaco.languages.registerCompletionItemProvider('dql', {
-  provideCompletionItems: () => {
+  provideCompletionItems: (model: monaco.editor.ITextModel, position: monaco.Position) => {
+    const word = model.getWordUntilPosition(position);
+    const range = {
+      startLineNumber: position.lineNumber,
+      endLineNumber: position.lineNumber,
+      startColumn: word.startColumn,
+      endColumn: word.endColumn
+    };
+
     const keywords = ['allofterms', 'anyofterms', 'regexp', 'alloftext', 'le', 'ge', 'lt', 'gt', 'eq'];
     const keywords2 = ['uid', 'has', 'type'];
     const keywords3 = ['floor', 'ceil', 'ln', 'exp', 'sqrt', 'since', 'pow(a, b)', 'logbase(a,b)', 'cond(a, b, c)',
@@ -395,9 +403,13 @@ monaco.languages.registerCompletionItemProvider('dql', {
           monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       },
     ];
-    const suggestions = [...keywordSuggestions, ...otherSuggestions, ...keywordSuggestions2, ...keywordSuggestions3];
+    const suggestions = [...keywordSuggestions, ...otherSuggestions, ...keywordSuggestions2, ...keywordSuggestions3]
+      .map(suggestion => ({
+        ...suggestion,
+        range
+      }));
 
-    return { suggestions: suggestions };
+    return { suggestions };
   }
 });
 

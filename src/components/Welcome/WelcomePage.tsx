@@ -17,37 +17,6 @@ import styled from '@emotion/styled';
 import { SiDgraph, SiGraphql } from "react-icons/si";
 import { VscJson } from "react-icons/vsc";
 
-const WelcomePage = () => {
-  const addTab = useTabsStore((state) => state.addTab);
-
-  const handleCreateTab = (type: string) => {
-    addTab(type);
-  };
-
-  return (
-    <WelcomeContainer>
-      <Title>Welcome to Dgraph</Title>
-      <Description>To get started, create a new tab in the format you desire:</Description>
-      <ButtonsContainer>
-        <Button onClick={() => handleCreateTab('DQL')}><SiDgraph /> Create DQL Tab </Button>
-        <Button onClick={() => handleCreateTab('GraphQL')}><SiGraphql /> Create GraphQL Tab </Button>
-        <Button onClick={() => handleCreateTab('JSON View')}><VscJson /> Create JSON Tab </Button>
-        <Button onClick={() => handleCreateTab('RDF')}>Create RDF Tab </Button>
-      </ButtonsContainer>
-      <ButtonsContainer>
-        <Button onClick={() => handleCreateTab('Schema DQL')}><SiDgraph /> DQL Schema Editor </Button>
-        <Button onClick={() => handleCreateTab('Schema DQL Bulk')}><SiDgraph /> Bulk Edit DQL Schema </Button>
-      </ButtonsContainer>
-      <ButtonsContainer>
-        <Button onClick={() => handleCreateTab('Schema GQL')}><SiGraphql /> GraphQL Schema Editor </Button>
-        <Button onClick={() => handleCreateTab('Schema GQL Bulk')}><SiGraphql /> Bulk Edit GraphQL Schema </Button>
-      </ButtonsContainer>
-    </WelcomeContainer>
-  );
-};
-
-export default WelcomePage;
-
 const WelcomeContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -93,3 +62,34 @@ const Button = styled.button`
     background-color: #45a049;
   }
 `;
+
+const WelcomePage = () => {
+  const addTab = useTabsStore((state) => state.addTab);
+
+  const handleCreateTab = (type: string) => {
+    addTab(type);
+  };
+
+  return (
+    <WelcomeContainer>
+      <Title>Welcome to Dgraph</Title>
+      <Description>To get started, create a new tab in the format you desire:</Description>
+      <ButtonsContainer>
+        <Button onClick={() => handleCreateTab('DQL')}><SiDgraph /> Create DQL Tab </Button>
+        <Button onClick={() => handleCreateTab('GraphQL')}><SiGraphql /> Create GraphQL Tab </Button>
+        <Button onClick={() => handleCreateTab('JSON View')}><VscJson /> Create JSON Tab </Button>
+        <Button onClick={() => handleCreateTab('RDF')}>Create RDF Tab </Button>
+      </ButtonsContainer>
+      <ButtonsContainer>
+        <Button onClick={() => handleCreateTab('Schema DQL')}><SiDgraph /> DQL Schema Editor </Button>
+        <Button onClick={() => handleCreateTab('Schema DQL Bulk')}><SiDgraph /> Bulk Edit DQL Schema </Button>
+      </ButtonsContainer>
+      <ButtonsContainer>
+        <Button onClick={() => handleCreateTab('Schema GQL')}><SiGraphql /> GraphQL Schema Editor </Button>
+        <Button onClick={() => handleCreateTab('Schema GQL Bulk')}><SiGraphql /> Bulk Edit GraphQL Schema </Button>
+      </ButtonsContainer>
+    </WelcomeContainer>
+  );
+};
+
+export default WelcomePage;

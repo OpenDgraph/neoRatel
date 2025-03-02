@@ -14,7 +14,7 @@ export const StyledControl = styled.div`
   background: linear-gradient(145deg, #333, #404040);
   box-shadow:  1px 1px 1px #202020,
                -1px -1px 1px #505050;
-  z-index: 500;
+  z-index: 1000;
   top: 90%;
   left: 70%;
 `;
