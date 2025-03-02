@@ -7,38 +7,37 @@ import DgraphAdminService from '../../services/dgraphAdmin';
 
 const DgraphConfigDialog = () => {
   const {
-    clusterUrl: defaultclusterUrl,
-    serverQueryTimeout: defaultServerQueryTimeout,
-    slashApiKey: defaultSlashApiKey,
-    authToken: defaultAuthToken,
-    aclToken: defaultAclToken,
+    clusterUrl,
+    serverQueryTimeout,
+    slashApiKey,
     dialogState,
+    setDialogState,
     setclusterUrl,
     setServerQueryTimeout,
     setSlashApiKey,
-    setAuthToken,
-    setAclToken,
-    setDialogState,
+    isConfigured,
+    setIsConfigured,
   } = useDgraphConfigStore();
+
+  useEffect(() => {
+    if (!isConfigured) {
+      setDialogState(true);
+    }
+  }, [isConfigured, setDialogState]);
 
   const [open, setOpen] = useState(dialogState);
 
-  const [clusterUrl, setclusterUrlState] = useState(defaultclusterUrl);
-  const [serverQueryTimeout, setServerQueryTimeoutState] = useState(defaultServerQueryTimeout);
-  const [slashApiKey, setSlashApiKeyState] = useState(defaultSlashApiKey);
-  const [authToken, setAuthTokenState] = useState(defaultAuthToken);
-  const [aclTokenState, setAclTokenState] = useState(defaultAclToken);
+  const [clusterUrlState, setclusterUrlState] = useState(clusterUrl);
+  const [serverQueryTimeoutState, setServerQueryTimeoutState] = useState(serverQueryTimeout);
+  const [slashApiKeyState, setSlashApiKeyState] = useState(slashApiKey);
 
   const [userId, setUserId] = useState('groot');
   const [password, setPassword] = useState('password');
   const [namespace, setNamespace] = useState('0');
 
-  const handleSubmit = (event: { preventDefault: () => void; }) => {
+  const handleSubmit = (event: { preventDefault: () => void }) => {
     event.preventDefault();
-    setclusterUrl(clusterUrl);
-    setServerQueryTimeout(serverQueryTimeout);
-    setSlashApiKey(slashApiKey);
-    setAuthToken(authToken);
+    setIsConfigured(true);
     setDialogState(false);
   };
 
@@ -53,9 +52,8 @@ const DgraphConfigDialog = () => {
       const response = await DgraphAdminService.login(userId, password, Number(namespace), clusterUrl);
       console.log('Login response:', response.data.login.response);
       if (response && response.data) {
-        setAclToken(response.data.login.response.accessJWT);
-        setIsLogged(true);
-        console.log('Login successful', aclTokenState);
+        setIsConfigured(true);
+        console.log('Login successful');
       } else {
         alert('Login failed');
       }
@@ -65,16 +63,13 @@ const DgraphConfigDialog = () => {
     }
   };
 
-  const [isLogged, setIsLogged] = useState(false);
-
   return (
     <Dialog.Root open={dialogState} onOpenChange={setDialogState}>
-      <Dialog.Trigger />
       <Dialog.Portal>
         <Dialog.Overlay className="DialogOverlay" />
         <Dialog.Content className="DialogContent">
           <Dialog.Title className="DialogTitle">
-            Dgraph Configuration
+            Dgraph Configuration {isConfigured && "✓"}
           </Dialog.Title>
           <Dialog.Description className="DialogDescription">
             Please enter your Dgraph configuration:
@@ -94,7 +89,7 @@ const DgraphConfigDialog = () => {
                   <input
                     className="Input"
                     type="text"
-                    value={clusterUrl}
+                    value={clusterUrlState}
                     onChange={(e) => setclusterUrlState(e.target.value)}
                   />
                 </label>
@@ -103,7 +98,7 @@ const DgraphConfigDialog = () => {
                   <input
                     className="Input"
                     type="number"
-                    value={serverQueryTimeout}
+                    value={serverQueryTimeoutState}
                     onChange={(e) =>
                       setServerQueryTimeoutState(Number(e.target.value))
                     }
@@ -114,17 +109,8 @@ const DgraphConfigDialog = () => {
                   <input
                     className="Input"
                     type="text"
-                    value={slashApiKey}
+                    value={slashApiKeyState}
                     onChange={(e) => setSlashApiKeyState(e.target.value)}
-                  />
-                </label>
-                <label>
-                  Auth Token:
-                  <input
-                    className="Input"
-                    type="text"
-                    value={authToken}
-                    onChange={(e) => setAuthTokenState(e.target.value)}
                   />
                 </label>
                 <input className="Button" type="submit" value="Submit" />
@@ -133,7 +119,7 @@ const DgraphConfigDialog = () => {
 
             <Tabs.Content value="acl">
               {
-                isLogged ?
+                isConfigured ?
                   <p>Logged in</p> :
                   <form id='2' onSubmit={handleAclLogin}>
                     <label>
@@ -170,8 +156,6 @@ const DgraphConfigDialog = () => {
             </Tabs.Content>
           </Tabs.Root>
 
-
-
           <Dialog.Close asChild>
             <button
               className="IconButton"
@@ -184,7 +168,6 @@ const DgraphConfigDialog = () => {
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-
   );
 };
 
