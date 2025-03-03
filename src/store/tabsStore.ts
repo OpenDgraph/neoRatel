@@ -13,7 +13,9 @@
 // limitations under the License.
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import DgraphService from '../services/dgraphService';
+import { debounce } from 'lodash';
 
 interface Tab {
   id: number;
@@ -39,7 +41,9 @@ type TabsStore = {
   setDefaultTab: (id: number, tab: string) => void;
 };
 
-export const useTabsStore = create<TabsStore>((set, get) => ({
+export const useTabsStore = create<TabsStore>()(
+  persist(
+    (set, get) => ({
       tabs: [],
       activeTabId: 1,
       removeAllTabs: () =>
@@ -137,8 +141,8 @@ export const useTabsStore = create<TabsStore>((set, get) => ({
       switchTab: (id: number) => {
         set({ activeTabId: id });
       },
-      updateTabContent: (id: number, content: string, result: any = undefined) => {
-        console.log('updateTabContent', id, content);
+      updateTabContent: debounce((id: number, content: string, result: any = undefined) => {
+        console.log('Auto-saving content for tab:', id);
         set((state) => {
           const updatedTabs = state.tabs.map((tab) => {
             if (tab.id === id) {
@@ -155,6 +159,15 @@ export const useTabsStore = create<TabsStore>((set, get) => ({
             tabs: updatedTabs
           };
         });
-      },
+      }, 1000),
 
-}));
+    }),
+    {
+      name: 'dgraph-tabs-storage',
+      partialize: (state) => ({ 
+        tabs: state.tabs,
+        activeTabId: state.activeTabId 
+      }),
+    }
+  )
+);
