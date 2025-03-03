@@ -79,8 +79,7 @@ export const EditorArea = () => {
 
   const setActiveTab = useTabsStore((state) => state.switchTab);
   const updateTabContent = useTabsStore((state) => state.updateTabContent);
-
-  const { addTab } = useTabsStore((state) => ({ addTab: state.addTab }));
+  const addTab = useTabsStore((state) => state.addTab);
 
   const aclTokenState = useDgraphConfigStore((state) => state.aclToken);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -253,7 +252,6 @@ export const EditorArea = () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
 
   return (
     <EditorAreaStyled>
