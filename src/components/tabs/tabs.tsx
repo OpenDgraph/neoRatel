@@ -115,7 +115,7 @@ export const EditorArea = () => {
   };
 
   const handlePlus = () => {
-    addTab('DQL');
+    document.querySelector<HTMLButtonElement>('.add-tab-button')?.click();
   };
 
   const handleSettings = () => {

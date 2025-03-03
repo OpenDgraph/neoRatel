@@ -36,7 +36,7 @@ const AddTabDialog = () => {
     return (
         <Dialog.Root>
             <Dialog.Trigger asChild>
-                <AddTabButton>+</AddTabButton>
+                <AddTabButton className="add-tab-button">+</AddTabButton>
             </Dialog.Trigger>
             <Dialog.Portal>
                 <DialogOverlay />
