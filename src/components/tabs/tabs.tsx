@@ -38,6 +38,8 @@ import '../../userWorker';
 import '../../monaco-editor-languages';
 import SchemaEditor from '../SchemaEditor';
 
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+
 interface Tab {
   tab: {
     id: number;
@@ -80,6 +82,8 @@ export const EditorArea = () => {
   const setActiveTab = useTabsStore((state) => state.switchTab);
   const updateTabContent = useTabsStore((state) => state.updateTabContent);
   const addTab = useTabsStore((state) => state.addTab);
+  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeAllTabs = useTabsStore((state) => state.removeAllTabs);
 
   const aclTokenState = useDgraphConfigStore((state) => state.aclToken);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -252,6 +256,33 @@ export const EditorArea = () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  useKeyboardShortcuts({
+    onDelete: () => {
+      console.log('Delete callback triggered'); // Debug log
+      if (activeTabId) {
+        removeTab(activeTabId);
+      }
+    },
+    onSave: () => {
+      console.log('Save callback triggered'); // Debug log
+      if (editorRef.current) {
+        const currentContent = editorRef.current.getValue();
+        handleEditorChange(currentContent);
+      }
+    },
+    onRun: () => {
+      console.log('Run callback triggered'); // Debug log
+      if (editorRef.current) {
+        const currentContent = editorRef.current.getValue();
+        handleQuery(currentContent);
+      }
+    },
+    onRemoveAll: () => {
+      console.log('Remove all callback triggered'); // Debug log
+      removeAllTabs();
+    }
+  });
 
   return (
     <EditorAreaStyled>
