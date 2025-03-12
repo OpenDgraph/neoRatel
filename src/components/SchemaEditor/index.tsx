@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from '@emotion/styled';
 import EditDialog from "./EditDialog";
+import DataTable from "./DataTable";
 import { useTabsStore } from '../../store/tabsStore';
 
 interface TableItem {
@@ -57,73 +58,6 @@ const EditButton = styled.button`
   }
 `;
 
-const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.SetStateAction<TableItem[]>> }> = ({ items, setItems }) => {
-  const [selectedItem, setSelectedItem] = useState<TableItem | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
-
-  const handleEditClick = (item: TableItem) => {
-    setSelectedItem(item);
-  };
-
-  const handleUpdate = (item: TableItem | null) => {
-    if (item) {
-      setItems(items.map(i => i === selectedItem ? item : i));
-    }
-    setSelectedItem(null);
-  };
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(items.length / itemsPerPage);
-
-  const goToNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const goToPrevPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  return (
-    <div>
-      <StyledTable>
-        <thead>
-          <tr>
-            <th>Predicate</th>
-            <th>Type</th>
-            <th>Indices</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.map((item, index) => (
-            <tr key={index}>
-              <td>{item.predicate}</td>
-              <td>{item.type}</td>
-              <td>{item.tokenizer?.join(", ")}</td>
-              <td>
-                <EditButton onClick={() => handleEditClick(item)}>Edit</EditButton>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </StyledTable>
-      
-      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <EditButton onClick={goToPrevPage} disabled={currentPage === 1}>Previous</EditButton>
-        <span>Page {currentPage} of {totalPages}</span>
-        <EditButton onClick={goToNextPage} disabled={currentPage === totalPages}>Next</EditButton>
-      </div>
-
-      {selectedItem && (
-        <EditDialog item={selectedItem} onUpdate={handleUpdate} />
-      )}
-    </div>
-  );
-};
-
 interface SchemaEditorProps {
   content: response;
 }
@@ -133,7 +67,7 @@ interface response {
 }
 
 const SchemaEditor: React.FC<SchemaEditorProps> = ({ content }) => {
-  const [items, setItems] = useState<TableItem[]>([]);
+  const [items, setItems] = useState<any>([]);
 
   useEffect(() => {
     if (content) {
@@ -143,9 +77,11 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ content }) => {
           setItems(schemaData);
         } else {
           console.error("Schema data is not an array", schemaData);
+          setItems([]);
         }
       } catch (error) {
         console.error("Failed to parse content", error);
+        setItems([]);
       }
     }
   }, [content]);
