@@ -80,7 +80,7 @@ const PaginationWrapper = styled.div`
 const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.SetStateAction<TableItem[]>> }> = ({ items, setItems }) => {
   const [selectedItem, setSelectedItem] = useState<TableItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Number of items per page
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Number of items per page, now dynamic
   const [filterText, setFilterText] = useState("");
   const [filterType, setFilterType] = useState("");
 
@@ -90,31 +90,38 @@ const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.S
   };
 
   // Handle update from dialog
-  const handleUpdate = (item: TableItem | null) => {
-    if (item) {
-      setItems(items.map(i => i === selectedItem ? item : i));
+  const handleUpdate = (updatedItem: TableItem | null) => {
+    if (updatedItem) {
+      setItems(prevItems =>
+        prevItems.map(item => item.predicate === updatedItem.predicate ? updatedItem : item)
+      );
     }
     setSelectedItem(null);
   };
 
   // Handle filtering items based on predicate and type
   const filteredItems = items.filter(item => {
-    const regex = new RegExp(filterText, "i");
+    let regex: RegExp;
+    try {
+      regex = new RegExp(filterText, "i");
+    } catch {
+      return false; // Invalid regex, skip all items temporarily
+    }
     const matchesText = regex.test(item.predicate);
     const matchesType = filterType ? item.type === filterType : true;
     return matchesText && matchesType;
   });
 
   // Pagination logic
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage)); // Ensure at least 1 page
-  const safeCurrentPage = Math.min(currentPage, totalPages); // Adjust current page if it's out of bounds
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
   const indexOfLastItem = safeCurrentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
 
   // Pagination navigation
-  const goToNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
   const goToFirstPage = () => setCurrentPage(1);
   const goToLastPage = () => setCurrentPage(totalPages);
 
@@ -129,11 +136,19 @@ const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.S
     setCurrentPage(1);
   };
 
+  // Handle items per page change
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value || 10); // fallback to 10 if value is NaN or 0
+    setCurrentPage(1);
+  };
+
+  // Collect all types for dropdown
   const uniqueTypes = Array.from(new Set(items.map(i => i.type)));
 
   return (
     <div>
-      <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center' }}>
+      {/* Filter controls */}
+      <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <FilterInput
           type="text"
           placeholder="Filter by name..."
@@ -146,8 +161,15 @@ const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.S
             <option key={idx} value={type}>{type}</option>
           ))}
         </Select>
+        {/* Items per page selector */}
+        <Select value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
+          {[5, 10, 20, 50, 100].map((num) => (
+            <option key={num} value={num}>{num} per page</option>
+          ))}
+        </Select>
       </div>
 
+      {/* Table */}
       <StyledTableWrapper>
         <StyledTable>
           <thead>
@@ -179,12 +201,13 @@ const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.S
         </StyledTable>
       </StyledTableWrapper>
 
+      {/* Pagination controls */}
       <PaginationWrapper>
-        <EditButton onClick={goToFirstPage} disabled={currentPage === 1}>First</EditButton>
-        <EditButton onClick={goToPrevPage} disabled={currentPage === 1}>Previous</EditButton>
-        <span>Page {currentPage} of {totalPages}</span>
-        <EditButton onClick={goToNextPage} disabled={currentPage === totalPages}>Next</EditButton>
-        <EditButton onClick={goToLastPage} disabled={currentPage === totalPages}>Last</EditButton>
+        <EditButton onClick={goToFirstPage} disabled={safeCurrentPage === 1}>First</EditButton>
+        <EditButton onClick={goToPrevPage} disabled={safeCurrentPage === 1}>Previous</EditButton>
+        <span>Page {safeCurrentPage} of {totalPages}</span>
+        <EditButton onClick={goToNextPage} disabled={safeCurrentPage === totalPages}>Next</EditButton>
+        <EditButton onClick={goToLastPage} disabled={safeCurrentPage === totalPages}>Last</EditButton>
       </PaginationWrapper>
 
       {/* Edit dialog */}
