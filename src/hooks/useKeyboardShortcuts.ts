@@ -16,9 +16,9 @@ export const useKeyboardShortcuts = (handlers: {
         event.preventDefault();
         handlers.onSave?.(event);
       }
-      
+
       // Shift + Delete
-      if (event.shiftKey && event.key === 'Delete' || event.key === 'Backspace') {
+      if (event.shiftKey && (event.key === 'Delete' || event.key === 'Backspace')) {
         console.log('Delete triggered'); // Debug log
         event.preventDefault();
         handlers.onDelete?.(event);
@@ -32,7 +32,11 @@ export const useKeyboardShortcuts = (handlers: {
       }
 
       // Ctrl/Cmd + Shift + Delete
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'Delete' || event.key === 'Backspace') {
+      if (
+        (event.ctrlKey || event.metaKey)
+        && event.shiftKey
+        && (event.key === 'Delete' || event.key === 'Backspace')
+      ) {
         console.log('Remove all triggered'); // Debug log
         event.preventDefault();
         handlers.onRemoveAll?.(event);
