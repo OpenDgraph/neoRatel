@@ -151,9 +151,10 @@ const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.S
       <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <FilterInput
           type="text"
-          placeholder="Filter by name..."
+          placeholder="Filter by predicate..."
           value={filterText}
           onChange={(e) => handleFilterChange(e.target.value)}
+          className="FilterInput"
         />
         <Select value={filterType} onChange={(e) => handleTypeFilterChange(e.target.value)}>
           <option value="">All Types</option>

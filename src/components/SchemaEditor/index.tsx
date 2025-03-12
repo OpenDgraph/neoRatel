@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from '@emotion/styled';
-import EditDialog from "./EditDialog";
 import DataTable from "./DataTable";
-import { useTabsStore } from '../../store/tabsStore';
 
 interface TableItem {
   predicate: string;
