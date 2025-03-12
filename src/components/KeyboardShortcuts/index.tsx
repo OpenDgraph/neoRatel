@@ -30,4 +30,4 @@ export const KeyboardShortcuts = () => (
     <ShortcutItem><kbd>Shift</kbd>+<kbd>Del</kbd> Delete Tab</ShortcutItem>
     <ShortcutItem><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Del</kbd> Remove All</ShortcutItem>
   </ShortcutsContainer>
-); 
+);
