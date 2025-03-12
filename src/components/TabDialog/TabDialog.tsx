@@ -16,48 +16,63 @@ import React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { useTabsStore } from '../../store/tabsStore';
-import { AddTabButton } from './styles';
+import { AddTabButton, DialogContent, DialogOverlay, DialogTitle, DialogClose, Flex, IconButton } from './styles';
 import { SiDgraph, SiGraphql } from "react-icons/si";
 import { VscJson } from "react-icons/vsc";
 
-export const AddTabDialog: React.FC = () => {
+const AddTabDialog = () => {
     const addTab = useTabsStore((state) => state.addTab);
 
-    const handleTabSelection = (type: string) => {
-        addTab(type);
-    };
+    const tabOptions = [
+        { type: 'DQL', description: 'Write and execute DQL queries' },
+        { type: 'GraphQL', description: 'Write and execute GraphQL queries' },
+        { type: 'JSON View', description: 'View and edit JSON data' },
+        { type: 'Schema DQL', description: 'View and edit DQL schema' },
+        { type: 'Schema DQL Bulk', description: 'Bulk edit DQL schema' },
+        { type: 'Schema GQL', description: 'View and edit GraphQL schema' },
+        { type: 'Schema GQL Bulk', description: 'Bulk edit GraphQL schema' }
+    ];
 
     return (
         <Dialog.Root>
             <Dialog.Trigger asChild>
-                <AddTabButton>+</AddTabButton>
+                <AddTabButton className="add-tab-button">+</AddTabButton>
             </Dialog.Trigger>
             <Dialog.Portal>
-                <Dialog.Overlay className="DialogOverlay" />
-                <Dialog.Content className="DialogContent">
-                    <Dialog.Title className="DialogTitle">Add new tab</Dialog.Title>
-                    <Dialog.Description className="DialogDescription">
-                        Choose the type of tab you want to create:
-                    </Dialog.Description>
-                    <Dialog.Close asChild>
-                        <button className="Button" onClickCapture={() => handleTabSelection('DQL')}>
-                        <SiDgraph /> Create a DQL tab
-                        </button></Dialog.Close>
-                    <Dialog.Close asChild>
-                        <button className="Button" onClickCapture={() => handleTabSelection('GraphQL')}>
-                        <SiGraphql /> Create a GraphQL tab
-                        </button></Dialog.Close>
-                    <Dialog.Close asChild>
-                        <button className="Button" onClickCapture={() => handleTabSelection('JSON View')}>
-                        <VscJson /> Create a JSON View tab
-                        </button>
-                    </Dialog.Close>
-                    <Dialog.Close asChild>
-                        <button className="IconButton" aria-label="Close">
+                <DialogOverlay />
+                <DialogContent>
+                    <DialogTitle>Add New Tab</DialogTitle>
+                    <Flex direction="column" gap="20px">
+                        {tabOptions.map((option) => (
+                            <button
+                                key={option.type}
+                                onClick={() => {
+                                    addTab(option.type);
+                                    document.querySelector<HTMLButtonElement>('.dialog-close-button')?.click();
+                                }}
+                                style={{
+                                    padding: '10px',
+                                    margin: '5px',
+                                    border: '1px solid #444',
+                                    borderRadius: '4px',
+                                    backgroundColor: '#2d2d2d',
+                                    color: '#fff',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    width: '90%'
+                                }}
+                            >
+                                <div style={{ fontWeight: 'bold' }}>{option.type}</div>
+                                <div style={{ fontSize: '0.9em', color: '#888' }}>{option.description}</div>
+                            </button>
+                        ))}
+                    </Flex>
+                    <DialogClose asChild>
+                        <IconButton className="dialog-close-button" aria-label="Close">
                             <Cross2Icon />
-                        </button>
-                    </Dialog.Close>
-                </Dialog.Content>
+                        </IconButton>
+                    </DialogClose>
+                </DialogContent>
             </Dialog.Portal>
         </Dialog.Root>
     );

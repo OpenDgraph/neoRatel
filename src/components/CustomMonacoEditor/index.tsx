@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useContext } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import MonacoEditor from 'react-monaco-editor';
 import { editor, KeyCode, KeyMod } from 'monaco-editor';
 import { useTabsStore } from '../../store/tabsStore';
@@ -134,6 +134,15 @@ const CustomMonacoEditor: React.FC<CustomMonacoEditorProps> = ({
     );
   };
 
+  const debouncedChange = useCallback(
+    debounce((value: string) => {
+      if (handleEditorChange) {
+        handleEditorChange(value);
+      }
+    }, 1000),
+    [handleEditorChange]
+  );
+
   return (
     <MonacoEditor
       width="100%"
@@ -142,7 +151,7 @@ const CustomMonacoEditor: React.FC<CustomMonacoEditorProps> = ({
       theme="vs-dark"
       value={content}
       options={options}
-      onChange={handleEditorChangeED}
+      onChange={debouncedChange}
       editorDidMount={handleEditorDidMount}
     />
   );

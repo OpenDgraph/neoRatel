@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from '@emotion/styled';
-import { Dialog, DialogContent, DialogTrigger } from '@radix-ui/react-dialog';
 import EditDialog from "./EditDialog";
+import DataTable from "./DataTable";
+import { useTabsStore } from '../../store/tabsStore';
 
 interface TableItem {
   predicate: string;
@@ -14,14 +15,25 @@ interface TableItem {
   lang?: boolean;
 }
 
+const StyledTableWrapper = styled.div`
+  width: 100%;
+  overflow-x: auto; /* Scroll horizontal se necessário */
+  margin-bottom: 10px;
+`;
+
 const StyledTable = styled.table`
   width: 100%;
+  min-width: 600px; /* Evita colapsar */
   border-collapse: collapse;
   color: #fff;
 
   th, td {
     border: 1px solid #444;
     padding: 10px;
+    text-align: left; /* Alinhamento padrão */
+    max-width: 200px;
+    word-wrap: break-word;
+    white-space: nowrap;
   }
 
   th {
@@ -46,89 +58,37 @@ const EditButton = styled.button`
   }
 `;
 
-const DataTable: React.FC = () => {
-  const [items, setItems] = useState<TableItem[]>([
-    {
-      predicate: "pre_production",
-      type: "uid",
-      list: true,
-    },
-    { predicate: "pass", type: "password" },
-    { predicate: "nickname", type: "default", list: true },
-    { predicate: "genre", type: "uid", reverse: true, count: true, list: true },
-    { predicate: "zoo", type: "default" },
-    { predicate: "regnbr", type: "string", index: true, tokenizer: ["exact"] },
-    { predicate: "wife", type: "uid", reverse: true },
-    {
-      predicate: "公司",
-      type: "string",
-      index: true,
-      tokenizer: ["fulltext"],
-      lang: true,
-    },
-    {
-      predicate: "initial_release_date",
-      type: "datetime",
-      index: true,
-      tokenizer: ["year"],
-    },
-    { predicate: "loc", type: "geo", index: true, tokenizer: ["geo"] },
-    {
-      predicate: "name",
-      type: "string",
-      index: true,
-      tokenizer: ["hash", "term", "trigram", "fulltext"],
-      lang: true,
-    },
-  ]);
-  const [selectedItem, setSelectedItem] = useState<TableItem | null>(null);
+interface SchemaEditorProps {
+  content: response;
+}
 
-  const handleEditClick = (item: TableItem) => {
-    setSelectedItem(item);
-  };
+interface response {
+  data: { schema: TableItem[] };
+}
 
-  const handleUpdate = (item: TableItem | null) => {
-    if (item) {
-      setItems(items.map(i => i === selectedItem ? item : i));
+const SchemaEditor: React.FC<SchemaEditorProps> = ({ content }) => {
+  const [items, setItems] = useState<any>([]);
+
+  useEffect(() => {
+    if (content) {
+      try {
+        const schemaData = content.data?.schema;
+        if (Array.isArray(schemaData)) {
+          setItems(schemaData);
+        } else {
+          console.error("Schema data is not an array", schemaData);
+          setItems([]);
+        }
+      } catch (error) {
+        console.error("Failed to parse content", error);
+        setItems([]);
+      }
     }
-    setSelectedItem(null);
-  };
+  }, [content]);
 
-  return (
-    <div>
-      <StyledTable>
-        <thead>
-          <tr>
-            <th>Predicate</th>
-            <th>Type</th>
-            <th>Indices</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, index) => (
-            <tr key={index}>
-              <td>{item.predicate}</td>
-              <td>{item.type}</td>
-              <td>{item.tokenizer && item.tokenizer.join(", ")}</td>
-              <td>
-                <EditButton onClick={() => handleEditClick(item)}>Edit</EditButton>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </StyledTable>
-      {selectedItem && (
-        <EditDialog item={selectedItem} onUpdate={handleUpdate} />
-      )}
-    </div>
-  );
-};
-
-const SchemaEditor: React.FC = () => {
   return (
     <>
-    <DataTable />
+      <DataTable items={items} setItems={setItems} />
     </>
   );
 };

@@ -11,7 +11,7 @@ interface FloatingControlProps {
     onSettings: () => void;
 }
 
-const FloatingControl = ({ activeTab, onPlay, onClear, onClone, onAdd, onSettings }: FloatingControlProps) => {
+const FloatingControl = ({ activeTab, onPlay, onClear, onClone, onPlus, onSettings }: FloatingControlProps) => {
     return (
         <StyledControl>
             <TabLink active={activeTab === 'play'}>
@@ -30,7 +30,7 @@ const FloatingControl = ({ activeTab, onPlay, onClear, onClone, onAdd, onSetting
                 </ControlButton>
             </TabLink>
             <TabLink active={activeTab === 'add'}>
-                <ControlButton onClick={onAdd}>
+                <ControlButton onClick={onPlus}>
                     <PlusIcon />
                 </ControlButton>
             </TabLink>

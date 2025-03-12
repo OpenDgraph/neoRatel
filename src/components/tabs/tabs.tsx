@@ -38,6 +38,8 @@ import '../../userWorker';
 import '../../monaco-editor-languages';
 import SchemaEditor from '../SchemaEditor';
 
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+
 interface Tab {
   tab: {
     id: number;
@@ -79,8 +81,9 @@ export const EditorArea = () => {
 
   const setActiveTab = useTabsStore((state) => state.switchTab);
   const updateTabContent = useTabsStore((state) => state.updateTabContent);
-
-  const { addTab } = useTabsStore((state) => ({ addTab: state.addTab }));
+  const addTab = useTabsStore((state) => state.addTab);
+  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeAllTabs = useTabsStore((state) => state.removeAllTabs);
 
   const aclTokenState = useDgraphConfigStore((state) => state.aclToken);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -116,7 +119,7 @@ export const EditorArea = () => {
   };
 
   const handlePlus = () => {
-    addTab('DQL');
+    document.querySelector<HTMLButtonElement>('.add-tab-button')?.click();
   };
 
   const handleSettings = () => {
@@ -211,7 +214,7 @@ export const EditorArea = () => {
         handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
       case 'schema':
         return <>
-          <SchemaEditor />
+          <SchemaEditor content={content as any} />
         </>;
       case 'schemaBulk':
         return (
@@ -254,6 +257,32 @@ export const EditorArea = () => {
     };
   }, []);
 
+  useKeyboardShortcuts({
+    onDelete: () => {
+      console.log('Delete callback triggered'); // Debug log
+      if (activeTabId) {
+        removeTab(activeTabId);
+      }
+    },
+    onSave: () => {
+      console.log('Save callback triggered'); // Debug log
+      if (editorRef.current) {
+        const currentContent = editorRef.current.getValue();
+        handleEditorChange(currentContent);
+      }
+    },
+    onRun: () => {
+      console.log('Run callback triggered'); // Debug log
+      if (editorRef.current) {
+        const currentContent = editorRef.current.getValue();
+        handleQuery(currentContent);
+      }
+    },
+    onRemoveAll: () => {
+      console.log('Remove all callback triggered'); // Debug log
+      removeAllTabs();
+    }
+  });
 
   return (
     <EditorAreaStyled>

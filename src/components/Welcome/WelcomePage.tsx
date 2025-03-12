@@ -16,6 +16,7 @@ import { useTabsStore } from '../../store/tabsStore';
 import styled from '@emotion/styled';
 import { SiDgraph, SiGraphql } from "react-icons/si";
 import { VscJson } from "react-icons/vsc";
+import { KeyboardShortcuts } from '../KeyboardShortcuts';
 
 const WelcomeContainer = styled.div`
   display: flex;
@@ -88,6 +89,7 @@ const WelcomePage = () => {
         <Button onClick={() => handleCreateTab('Schema GQL')}><SiGraphql /> GraphQL Schema Editor </Button>
         <Button onClick={() => handleCreateTab('Schema GQL Bulk')}><SiGraphql /> Bulk Edit GraphQL Schema </Button>
       </ButtonsContainer>
+      <KeyboardShortcuts />
     </WelcomeContainer>
   );
 };
