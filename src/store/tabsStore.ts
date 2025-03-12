@@ -90,7 +90,9 @@ export const useTabsStore = create<TabsStore>()(
         } else if (type === 'Schema DQL') {
           type = 'SchemaBulk';
           language = 'schema';
-          content = '# This should not be monaco\n\n';
+          let query = `schema {} #JSON`
+          const response = await DgraphService.query(query, newId);
+          content = response;
         } else if (type === 'Schema DQL Bulk') {
           type = 'SchemaBulk';
           language = 'schemaBulk';

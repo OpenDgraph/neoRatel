@@ -214,7 +214,7 @@ export const EditorArea = () => {
         handleEditorChange={handleEditorChange} handleQuery={handleQuery} />;
       case 'schema':
         return <>
-          <SchemaEditor />
+          <SchemaEditor content={{ data: { schema: JSON.parse(content) } }} />
         </>;
       case 'schemaBulk':
         return (

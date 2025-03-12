@@ -63,6 +63,9 @@ class DgraphService implements IDgraphService {
           }
           response.data = await convertSchemaToText(response.data);
           useTabsStore.getState().updateTabContent(tabId, response.data, response.data);
+        }
+        else if (data.startsWith('schema {') && data.includes('#JSON') && response.data.data) {
+          useTabsStore.getState().updateTabContent(tabId, response.data, response.data);
         } else {
           useTabsStore.getState().updateTabContent(tabId, data, response.data);
         }

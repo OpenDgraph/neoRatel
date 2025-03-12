@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from '@emotion/styled';
-import { Dialog, DialogContent, DialogTrigger } from '@radix-ui/react-dialog';
 import EditDialog from "./EditDialog";
+import { useTabsStore } from '../../store/tabsStore';
 
 interface TableItem {
   predicate: string;
@@ -14,14 +14,25 @@ interface TableItem {
   lang?: boolean;
 }
 
+const StyledTableWrapper = styled.div`
+  width: 100%;
+  overflow-x: auto; /* Scroll horizontal se necessário */
+  margin-bottom: 10px;
+`;
+
 const StyledTable = styled.table`
   width: 100%;
+  min-width: 600px; /* Evita colapsar */
   border-collapse: collapse;
   color: #fff;
 
   th, td {
     border: 1px solid #444;
     padding: 10px;
+    text-align: left; /* Alinhamento padrão */
+    max-width: 200px;
+    word-wrap: break-word;
+    white-space: nowrap;
   }
 
   th {
@@ -46,42 +57,10 @@ const EditButton = styled.button`
   }
 `;
 
-const DataTable: React.FC = () => {
-  const [items, setItems] = useState<TableItem[]>([
-    {
-      predicate: "pre_production",
-      type: "uid",
-      list: true,
-    },
-    { predicate: "pass", type: "password" },
-    { predicate: "nickname", type: "default", list: true },
-    { predicate: "genre", type: "uid", reverse: true, count: true, list: true },
-    { predicate: "zoo", type: "default" },
-    { predicate: "regnbr", type: "string", index: true, tokenizer: ["exact"] },
-    { predicate: "wife", type: "uid", reverse: true },
-    {
-      predicate: "公司",
-      type: "string",
-      index: true,
-      tokenizer: ["fulltext"],
-      lang: true,
-    },
-    {
-      predicate: "initial_release_date",
-      type: "datetime",
-      index: true,
-      tokenizer: ["year"],
-    },
-    { predicate: "loc", type: "geo", index: true, tokenizer: ["geo"] },
-    {
-      predicate: "name",
-      type: "string",
-      index: true,
-      tokenizer: ["hash", "term", "trigram", "fulltext"],
-      lang: true,
-    },
-  ]);
+const DataTable: React.FC<{ items: TableItem[], setItems: React.Dispatch<React.SetStateAction<TableItem[]>> }> = ({ items, setItems }) => {
   const [selectedItem, setSelectedItem] = useState<TableItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const handleEditClick = (item: TableItem) => {
     setSelectedItem(item);
@@ -92,6 +71,19 @@ const DataTable: React.FC = () => {
       setItems(items.map(i => i === selectedItem ? item : i));
     }
     setSelectedItem(null);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const goToPrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
   return (
@@ -106,11 +98,11 @@ const DataTable: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {items.map((item, index) => (
+          {currentItems.map((item, index) => (
             <tr key={index}>
               <td>{item.predicate}</td>
               <td>{item.type}</td>
-              <td>{item.tokenizer && item.tokenizer.join(", ")}</td>
+              <td>{item.tokenizer?.join(", ")}</td>
               <td>
                 <EditButton onClick={() => handleEditClick(item)}>Edit</EditButton>
               </td>
@@ -118,6 +110,13 @@ const DataTable: React.FC = () => {
           ))}
         </tbody>
       </StyledTable>
+      
+      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+        <EditButton onClick={goToPrevPage} disabled={currentPage === 1}>Previous</EditButton>
+        <span>Page {currentPage} of {totalPages}</span>
+        <EditButton onClick={goToNextPage} disabled={currentPage === totalPages}>Next</EditButton>
+      </div>
+
       {selectedItem && (
         <EditDialog item={selectedItem} onUpdate={handleUpdate} />
       )}
@@ -125,10 +124,35 @@ const DataTable: React.FC = () => {
   );
 };
 
-const SchemaEditor: React.FC = () => {
+interface SchemaEditorProps {
+  content: response;
+}
+
+interface response {
+  data: { schema: TableItem[] };
+}
+
+const SchemaEditor: React.FC<SchemaEditorProps> = ({ content }) => {
+  const [items, setItems] = useState<TableItem[]>([]);
+
+  useEffect(() => {
+    if (content) {
+      try {
+        const schemaData = content.data?.schema;
+        if (Array.isArray(schemaData)) {
+          setItems(schemaData);
+        } else {
+          console.error("Schema data is not an array", schemaData);
+        }
+      } catch (error) {
+        console.error("Failed to parse content", error);
+      }
+    }
+  }, [content]);
+
   return (
     <>
-    <DataTable />
+      <DataTable items={items} setItems={setItems} />
     </>
   );
 };
