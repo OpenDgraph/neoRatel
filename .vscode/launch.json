@@ -2,12 +2,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "msedge",
+            "type": "chrome",
             "request": "launch",
             "name": "Launch localhost",
             "url": "http://localhost:4004",
             "webRoot": "${workspaceFolder}/",
-            "runtimeArgs": ["--disable-web-security", "--user-data-dir=${workspaceFolder}/.vscode/chrome"]
+            "runtimeArgs": ["--user-data-dir=${workspaceFolder}/.vscode/chrome"],
+            "skipFiles": [
+                "${workspaceFolder}/node_modules/**"
+            ]
         }
     ]
   }
